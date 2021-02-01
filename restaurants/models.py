@@ -7,7 +7,7 @@ class Restaurant(models.Model):
         return self.name
 
 class Vote(models.Model):
-    ip_address = models.CharField(max_length=50)
+    ip_address = models.CharField(max_length=45)
     date = models.DateField(auto_now_add=True)
     restaurant = models.ForeignKey(to=Restaurant, on_delete=models.CASCADE,
                                    related_name='vote')
