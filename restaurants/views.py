@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Sum, Q, Count
 from django.shortcuts import get_object_or_404
 
 from rest_framework.viewsets import ModelViewSet
@@ -23,6 +24,14 @@ def get_client_ip(request):
 class RestaurantViewSet(ModelViewSet):
     queryset = Restaurant.objects.all()
     serializer_class = RestaurantSerializer
+
+    def get_queryset(self):
+        todays_date = datetime.today()
+        return Restaurant.objects.annotate(
+            todays_votes = Sum('votes__weight',
+            filter=Q(votes__date = todays_date)),
+            ip_count = Count('votes__ip_address', distinct=True)
+            ).order_by('-todays_votes', '-ip_count')
 
 
 class VoteView(APIView):

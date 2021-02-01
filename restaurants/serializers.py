@@ -4,10 +4,11 @@ from . models import Restaurant, Vote
 
 
 class RestaurantSerializer(serializers.ModelSerializer):
+    todays_votes = serializers.DecimalField(max_digits=100000000, decimal_places=2)
 
     class Meta:
         model = Restaurant
-        fields = ["name", "votes"]
+        fields = ["id", "name", "todays_votes"]
 
 class VoteSerializer(serializers.ModelSerializer):
 
