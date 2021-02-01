@@ -11,8 +11,6 @@ from . models import Restaurant, Vote
 from . serializers import RestaurantSerializer, VoteSerializer
 
 
-todays_date = datetime.today()
-
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
@@ -38,6 +36,7 @@ class VoteView(APIView):
                                           id=validated_data["restaurant"])
 
             vote_ip_address = get_client_ip(request)
+            todays_date = datetime.today()
             today_votes_from_same_ip = Vote.objects.filter(date=todays_date,
                                                       restaurant=restaurant,
                                                       ip_address=vote_ip_address).count()
