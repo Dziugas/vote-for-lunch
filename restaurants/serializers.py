@@ -2,11 +2,12 @@ from rest_framework import serializers
 from . models import Restaurant, Vote
 
 
+
 class RestaurantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Restaurant
-        fields = "__all__"
+        fields = ["name", "votes"]
 
 class VoteSerializer(serializers.ModelSerializer):
 
