@@ -34,6 +34,27 @@ class RestaurantViewSet(ModelViewSet):
             ).order_by('-todays_votes', '-ip_count')
 
 
+class HistoryView(APIView):
+    def get (self, request, pk):
+        restaurant = get_object_or_404(Restaurant, id=pk)
+        dates_of_votes = restaurant.votes.values('date').distinct()
+        print(dates_of_votes)
+        history = []
+        for date in dates_of_votes:
+            total_votes = restaurant.votes.filter(date=date["date"]).aggregate(Sum("weight"))["weight__sum"]
+            history.append({
+                "date": date["date"],
+                "total_votes": total_votes
+                }
+            )
+
+
+
+
+        return Response(history)
+
+
+
 class VoteView(APIView):
 
     def post (self, request):
