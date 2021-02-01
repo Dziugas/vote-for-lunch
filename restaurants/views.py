@@ -38,14 +38,20 @@ class VoteView(APIView):
             vote_ip_address = get_client_ip(request)
             todays_date = datetime.today()
             today_votes_from_same_ip = Vote.objects.filter(date=todays_date,
-                                                      restaurant=restaurant,
                                                       ip_address=vote_ip_address).count()
+            vote_limit = 10
             if today_votes_from_same_ip == 0:
                 score = 1
             elif today_votes_from_same_ip == 1:
                 score = 0.5
-            elif today_votes_from_same_ip > 1:
+            elif vote_limit > today_votes_from_same_ip > 1:
                 score = 0.25
+            elif today_votes_from_same_ip > vote_limit:
+                return Response(
+                    {
+                        "message": f"Vote limit of {vote_limit} for this IP has been reached today"
+                    }
+                )
 
             Vote.objects.create(
                 restaurant=restaurant,
