@@ -30,7 +30,8 @@ class RestaurantViewSet(ModelViewSet):
         return Restaurant.objects.annotate(
             todays_votes = Sum('votes__weight',
             filter=Q(votes__date = todays_date)),
-            ip_count = Count('votes__ip_address', distinct=True)
+            ip_count = Count('votes__ip_address', 
+            filter=Q(votes__date = todays_date), distinct=True)
             ).order_by(F('todays_votes').desc(nulls_last=True), '-ip_count')
 
 
