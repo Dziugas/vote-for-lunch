@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q, Count, F
 from django.shortcuts import get_object_or_404
 
 from rest_framework.viewsets import ModelViewSet
@@ -31,7 +31,7 @@ class RestaurantViewSet(ModelViewSet):
             todays_votes = Sum('votes__weight',
             filter=Q(votes__date = todays_date)),
             ip_count = Count('votes__ip_address', distinct=True)
-            ).order_by('-todays_votes', '-ip_count')
+            ).order_by(F('todays_votes').desc(nulls_last=True), '-ip_count')
 
 
 class HistoryView(APIView):
