@@ -41,10 +41,13 @@ class HistoryView(APIView):
         dates_of_votes = restaurant.votes.values('date').distinct()
         history = []
         for date in dates_of_votes:
-            total_votes = restaurant.votes.filter(date=date["date"]).aggregate(Sum("weight"))["weight__sum"]
+            todays_votes = restaurant.votes.filter(date=date["date"])
+            total_votes = todays_votes.aggregate(Sum("weight"))["weight__sum"]
+            ip_count = todays_votes.aggregate(Count("ip_address", distinct=True))["ip_address__count"]
             history.append({
                 "date": date["date"],
-                "total_votes": total_votes
+                "total_votes": total_votes,
+                "ip_count": ip_count
                 }
             )
         return Response(history)
