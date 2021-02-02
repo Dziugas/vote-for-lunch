@@ -38,7 +38,6 @@ class HistoryView(APIView):
     def get (self, request, pk):
         restaurant = get_object_or_404(Restaurant, id=pk)
         dates_of_votes = restaurant.votes.values('date').distinct()
-        print(dates_of_votes)
         history = []
         for date in dates_of_votes:
             total_votes = restaurant.votes.filter(date=date["date"]).aggregate(Sum("weight"))["weight__sum"]
@@ -47,12 +46,7 @@ class HistoryView(APIView):
                 "total_votes": total_votes
                 }
             )
-
-
-
-
         return Response(history)
-
 
 
 class VoteView(APIView):
@@ -76,7 +70,7 @@ class VoteView(APIView):
                 score = 0.5
             elif vote_limit > today_votes_from_same_ip > 1:
                 score = 0.25
-            elif today_votes_from_same_ip > vote_limit:
+            elif today_votes_from_same_ip >= vote_limit:
                 return Response(
                     {
                         "message": f"Vote limit of {vote_limit} for this IP has been reached today"
