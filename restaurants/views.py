@@ -11,6 +11,7 @@ from rest_framework import status
 from . models import Restaurant, Vote
 from . serializers import RestaurantSerializer, VoteSerializer
 
+vote_limit = 10
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -56,9 +57,8 @@ class HistoryView(APIView):
 class VoteView(APIView):
 
     def post (self, request):
-
-        serializer = VoteSerializer(data = request.data)
-        if serializer.is_valid(raise_exception=ValueError):
+        serializer = VoteSerializer(data=request.data)
+        if serializer.is_valid():
             validated_data = request.data
             restaurant = get_object_or_404(Restaurant,
                                           id=validated_data["restaurant"])
@@ -67,7 +67,6 @@ class VoteView(APIView):
             todays_date = datetime.today()
             today_votes_from_same_ip = Vote.objects.filter(date=todays_date,
                                                       ip_address=vote_ip_address).count()
-            vote_limit = 10
             if today_votes_from_same_ip == 0:
                 score = 1
             elif today_votes_from_same_ip == 1:
@@ -78,7 +77,8 @@ class VoteView(APIView):
                 return Response(
                     {
                         "message": f"Vote limit of {vote_limit} for this IP has been reached today"
-                    }
+                    },
+                    status=400
                 )
 
             Vote.objects.create(
@@ -93,3 +93,6 @@ class VoteView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+        return Response(
+            serializer.errors, status=400
+        )

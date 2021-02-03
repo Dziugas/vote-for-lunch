@@ -15,4 +15,4 @@ class VoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        exclude = ("id", "ip_address", "restaurant", "weight")
+        exclude = ("id", "ip_address", "date", "weight")
