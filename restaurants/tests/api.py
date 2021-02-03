@@ -112,14 +112,14 @@ class VoteTests(APITestCase):
             "restaurant": 50
         }
         response = self.client.post(self.vote_url, data=vote_data)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
     def test_vote_with_no_data(self):
         vote_data = {}
         response = self.client.post(self.vote_url, data=vote_data)
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.content, b'{"restaurant":["This field is required."]}')
 
 
@@ -128,5 +128,5 @@ class VoteTests(APITestCase):
             self.client.post(self.vote_url, data=self.vote_data)
 
         response11 = self.client.post(self.vote_url, data=self.vote_data)
-        self.assertEqual(response11.status_code, 400)
+        self.assertEqual(response11.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response11.data["message"], f"Vote limit of {vote_limit} for this IP has been reached today")            
