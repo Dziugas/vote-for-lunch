@@ -11,7 +11,9 @@ from rest_framework import status
 from . models import Restaurant, Vote
 from . serializers import RestaurantSerializer, VoteSerializer
 
+
 vote_limit = 10
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -29,22 +31,23 @@ class RestaurantViewSet(ModelViewSet):
     def get_queryset(self):
         todays_date = datetime.today()
         return Restaurant.objects.annotate(
-            todays_votes = Sum('votes__weight',
-            filter=Q(votes__date = todays_date)),
-            ip_count = Count('votes__ip_address', 
-            filter=Q(votes__date = todays_date), distinct=True)
-            ).order_by(F('todays_votes').desc(nulls_last=True), '-ip_count')
+            todays_votes=Sum('votes__weight',
+                             filter=Q(votes__date=todays_date)),
+            ip_count=Count('votes__ip_address',
+                           filter=Q(votes__date=todays_date), distinct=True)
+        ).order_by(F('todays_votes').desc(nulls_last=True), '-ip_count')
 
 
 class HistoryView(APIView):
-    def get (self, request, pk):
+    def get(self, request, pk):
         restaurant = get_object_or_404(Restaurant, id=pk)
         dates_of_votes = restaurant.votes.values('date').distinct()
         history = []
         for date in reversed(dates_of_votes):
             days_votes = restaurant.votes.filter(date=date["date"])
             total_votes = days_votes.aggregate(Sum("weight"))["weight__sum"]
-            ip_count = days_votes.aggregate(Count("ip_address", distinct=True))["ip_address__count"]
+            ip_count = days_votes.aggregate(
+                Count("ip_address", distinct=True))["ip_address__count"]
             history.append({
                 "date": date["date"],
                 "total_votes": total_votes,
@@ -55,18 +58,18 @@ class HistoryView(APIView):
 
 
 class VoteView(APIView):
-
-    def post (self, request):
+    def post(self, request):
         serializer = VoteSerializer(data=request.data)
         if serializer.is_valid():
             validated_data = request.data
             restaurant = get_object_or_404(Restaurant,
-                                          id=validated_data["restaurant"])
+                                           id=validated_data["restaurant"])
 
             vote_ip_address = get_client_ip(request)
             todays_date = datetime.today()
-            today_votes_from_same_ip = Vote.objects.filter(date=todays_date,
-                                                      ip_address=vote_ip_address).count()
+            today_votes_from_same_ip = \
+                Vote.objects.filter(date=todays_date,
+                                    ip_address=vote_ip_address).count()
             if today_votes_from_same_ip == 0:
                 score = 1
             elif today_votes_from_same_ip == 1:
@@ -76,7 +79,8 @@ class VoteView(APIView):
             elif today_votes_from_same_ip >= vote_limit:
                 return Response(
                     {
-                        "message": f"Vote limit of {vote_limit} for this IP has been reached today"
+                        "message": f"Vote limit of {vote_limit} for this IP "
+                        f"has been reached today"
                     },
                     status=400
                 )
@@ -84,7 +88,7 @@ class VoteView(APIView):
             Vote.objects.create(
                 restaurant=restaurant,
                 weight=score,
-                ip_address = vote_ip_address
+                ip_address=vote_ip_address
             )
 
             return Response(

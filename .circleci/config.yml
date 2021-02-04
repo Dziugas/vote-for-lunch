@@ -12,8 +12,9 @@ jobs:
           command: sudo docker-compose up -d
 
       - run:
-          name: Create and run migrations and run tests
+          name: Create and run migrations, tests and linter
           command: |
             sudo chmod +x manage.py
             sudo docker exec -it django_app python manage.py migrate
             sudo docker exec -it django_app python manage.py test
+            sudo docker exec -it django_app flake8 --exclude ./restaurants/tests,./lunchvote/settings.py,./restaurants/migrations
