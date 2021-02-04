@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -33,6 +33,28 @@ class RestaurantTests(APITestCase):
         response = self.client.get(history_url)
         self.assertEqual(response.data[0]["date"], todays_date)
         self.assertEqual(response.data[0]["total_votes"], 2.25)
+
+
+    def test_history_endpoint_displays_latest_date_first(self):
+        restaurant1 = Restaurant.objects.create(name="Toms Pizza")
+        history_url = reverse("restaurants:history", args=(restaurant1.id,))
+
+        # create one vote for today
+        Vote.objects.create(ip_address="111.11.111.11", restaurant=restaurant1, weight=1)
+        # create one vote for yesterday
+        vote_2 = Vote.objects.create(ip_address="111.11.111.11", restaurant=restaurant1, weight=1)
+        yesterday = datetime.now()-timedelta(days=1)
+        Vote.objects.filter(id=vote_2.id).update(date=yesterday)
+        # create one vote for last week
+        vote_3 = Vote.objects.create(ip_address="111.11.111.11", restaurant=restaurant1, weight=1)
+        last_week = datetime.now()-timedelta(days=7)
+        Vote.objects.filter(id=vote_3.id).update(date=last_week)
+
+        response = self.client.get(history_url)
+        print(response.data)
+        self.assertEqual(response.data[0]["date"], date(2021, 2, 4))
+        self.assertEqual(response.data[2]["date"], date(2021, 1, 28))
+
 
     def test_restaurant_with_most_votes_is_on_top(self):
         restaurant_url = reverse("restaurants:restaurant-list")
