@@ -38,22 +38,25 @@ class RestaurantTests(APITestCase):
         restaurant1 = Restaurant.objects.create(name="Toms Pizza")
         history_url = reverse("restaurants:history", args=(restaurant1.id,))
 
-        # create one vote for today
-        Vote.objects.create(ip_address="111.11.111.11",
+        # create three votes with different dates
+        vote_1 = Vote.objects.create(ip_address="111.11.111.11",
                             restaurant=restaurant1, weight=1)
-        # create one vote for yesterday
+        date_1 = date(2021, 2, 5)
+        Vote.objects.filter(id=vote_1.id).update(date=date_1)
+
         vote_2 = Vote.objects.create(ip_address="111.11.111.11",
                                      restaurant=restaurant1, weight=1)
-        yesterday = datetime.now()-timedelta(days=1)
-        Vote.objects.filter(id=vote_2.id).update(date=yesterday)
-        # create one vote for last week
+        date_2 = date(2021, 2, 4)
+        Vote.objects.filter(id=vote_2.id).update(date=date_2)
+
         vote_3 = Vote.objects.create(ip_address="111.11.111.11",
                                      restaurant=restaurant1, weight=1)
-        last_week = datetime.now()-timedelta(days=7)
-        Vote.objects.filter(id=vote_3.id).update(date=last_week)
+        date_3 = date(2021, 1, 28)
+        Vote.objects.filter(id=vote_3.id).update(date=date_3)
 
         response = self.client.get(history_url)
-        self.assertEqual(response.data[0]["date"], date(2021, 2, 4))
+        self.assertEqual(response.data[0]["date"], date(2021, 2, 5))
+        self.assertEqual(response.data[1]["date"], date(2021, 2, 4))
         self.assertEqual(response.data[2]["date"], date(2021, 1, 28))
 
     def test_restaurant_with_most_votes_is_on_top(self):
